@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation=" http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-3.0.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
+
+	<!-- annotations detection -->
+	<context:annotation-config />
+	<mvc:annotation-driven />
+	<context:property-placeholder location="classpath:datasource.properties,
+	                              classpath:shiro.properties,
+	                              classpath:mail.properties" />
+
+	<!-- ######################################################################### -->
+	<!-- ###################### shiro Configuration ###################### -->
+	<!-- ######################################################################### -->
+
+	<!-- les beans authcBasic and shiroFilter jouent les roles de main dans 
+		les fichiers ini -->
+	<bean id="authcBasic"
+		class="ma.accolade.ged.filtre.gda.HttpAuthenticationFilter">
+		<property name="basicHttpJdbcRealm" ref="basicCmJdbcRealm" />
+	</bean>
+
+	<!-- <bean id="logout" class="org.apache.shiro.web.filter.authc.LogoutFilter"> 
+		<property name="redirectUrl" value="/Users/loginform" /> </bean> -->
+
+
+
+
+	<bean id="cleAuthdatasource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="${database.driver}" />
+		<property name="jdbcUrl" value="${database.url}" />
+		<property name="user" value="${database.username}" />
+		<property name="password" value="${database.password}" />
+		<property name="initialPoolSize" value="${database.initialpoolsize}" />
+		<property name="minPoolSize" value="${database.minpoolsize}" />
+		<property name="maxPoolSize" value="${database.maxpoolsize}" />
+		<property name="acquireIncrement" value="5" />
+		<property name="maxIdleTime" value="60" />
+	</bean>
+
+	<bean id="basicMatcher"
+		class="ma.accolade.ged.filtre.gda.HTTPCredentialsMatcher" />
+
+	<!-- security datasource: -->
+	<bean id="basicCmJdbcRealm"
+		class="ma.accolade.ged.filtre.gda.BasicHttpJdbcRealm">
+		<property name="dataSource" ref="cleAuthdatasource" />
+		<property name="credentialsMatcher" ref="basicMatcher" />
+		<property name="authenticationQuery" value="${authenticationQuery}" />
+        <property name="dateExpirationQuery" value="${dateExpirationQuery}" />
+        <property name="mettreAjourSessionQuery" value="${mettreAjourSessionQuery}" />
+        <property name="nombreTentativeQuery" value="${nombreTentativeQuery}" />
+        <property name="metterAjourTentativeQuery" value="${metterAjourTentativeQuery}" />
+        <property name="bloquerCompteQuery" value="${bloquerCompteQuery}" />
+        <property name="etatCompteQuery" value="${etatCompteQuery}" />
+        <property name="etatMsgEnvoyeQuery" value="${etatMsgEnvoyeQuery}" />
+        <property name="mettreAjourCodeLienQuery" value="${mettreAjourCodeLienQuery}" />
+        <property name="getNomPrenomEmailQuery" value="${getNomPrenomEmailQuery}" />
+        <property name="changerEtatMsgEnvoiQuery" value="${changerEtatMsgEnvoiQuery}" />
+        <property name="nombreTentativeConnexion" value="${nombreTentativeConnexion}" />
+	</bean>
+
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<!-- For single realm app., use property name="realm" ref="cmJdbcRealm" 
+			! -->
+		<!-- Multiple realms strategy : HMAC and Token -->
+		<property name="realms">
+			<list>
+				<ref bean="basicCmJdbcRealm" />
+			</list>
+		</property>
+		<property name="authenticator.authenticationStrategy">
+			<bean class="org.apache.shiro.authc.pam.FirstSuccessfulStrategy" />
+		</property>
+	</bean>
+
+         
+    <!-- ######################################################################### -->
+	<!-- ###################### Mail Configuration ###################### -->
+	<!-- ######################################################################### -->
+    	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="${host}" />
+		<property name="port" value="${port}" />
+		<property name="username" value="${username}" />
+		<property name="password" value="${password}" />
+
+
+		<!-- The name of the property, following JavaBean naming conventions -->
+
+		<property name="javaMailProperties">
+			<props>
+				<prop key="mail.transport.protocol">${mail.transport.protocol}</prop>
+				<prop key="mail.smtp.auth">${mail.smtp.auth}</prop>
+				<prop key="mail.smtp.starttls.enable">${mail.smtp.starttls.enable}</prop>
+				<prop key="mail.smtp.ssl.trust">${mail.smtp.ssl.trust}</prop>
+				<prop key="mail.debug">${mail.debug}</prop>
+			</props>
+		</property>
+
+
+	</bean>
+
+</beans>
+
